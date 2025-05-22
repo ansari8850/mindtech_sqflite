@@ -157,81 +157,10 @@ class DatabaseHelper {
     }
   }
 
-  Future<UserModel?> getUserById(int id) async {
-    try {
-      Database db = await database;
-      List<Map<String, dynamic>> maps = await db.query(
-        table,
-        where: '$columnId = ?',
-        whereArgs: [id],
-      );
-      if (maps.isNotEmpty) {
-        return UserModel.fromMap(maps.first);
-      }
-      return null;
-    } catch (e) {
-      log('Error fetching user by ID: $e');
-      return null;
-    }
-  }
-
   Future<void> close() async {
     if (_database != null) {
       await _database!.close();
       _database = null;
-    }
-  }
-
-  Future<void> resetDatabase() async {
-    try {
-      await close();
-      String databasesPath = await getDatabasesPath();
-      String path = join(databasesPath, _databaseName);
-
-      log('Resetting database at: $path');
-      await deleteDatabase(path);
-      log('Database reset completed');
-    } catch (e) {
-      log('Error resetting database: $e');
-    }
-  }
-
-  Future<bool> checkTableSchema() async {
-    try {
-      Database db = await database;
-      var tables = await db.rawQuery(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='$table'");
-
-      if (tables.isEmpty) {
-        log('Table $table does not exist');
-        return false;
-      }
-
-      var columns = await db.rawQuery('PRAGMA table_info($table)');
-      log('Table columns: $columns');
-
-      List<String> requiredColumns = [
-        columnId,
-        columnName,
-        columnEmail,
-        columnMobileNumber,
-        columnDateOfBirth
-      ];
-      List<String> existingColumns =
-          columns.map((col) => col['name'].toString()).toList();
-
-      for (String col in requiredColumns) {
-        if (!existingColumns.contains(col)) {
-          log('Missing column: $col');
-          return false;
-        }
-      }
-
-      log('Database schema is valid');
-      return true;
-    } catch (e) {
-      log('Error checking table schema: $e');
-      return false;
     }
   }
 
